@@ -126,7 +126,7 @@ def find_lane_lines(original_image):
     # step 3: now only use the region of the image that we're interested in
     #  -> the region where the lanes are
     height, width = img.shape
-    vertices = np.array([[(width * 0.06, height), (width / 2.15, height / 1.8), (width / 1.85, height / 1.8), (width * 0.94, height)]], dtype=np.int32)
+    vertices = np.array([[(width * 0.06, height), (width / 2.10, height / 1.6), (width / 1.90, height / 1.6), (width * 0.94, height)]], dtype=np.int32)
     img = region_of_interest(img, vertices)
 
     # step 4: find the hough lines
@@ -148,6 +148,5 @@ for test_image in os.listdir("test_images/"):
     print('reading ' + test_image)
     img = mpimg.imread('test_images/' + test_image)
     img = find_lane_lines(img)
-    plt.imshow(img)
-
-plt.show()
+    #plt.imshow(img)
+    mpimg.imsave("test_images_processed/" + test_image, img)
