@@ -121,7 +121,7 @@ def find_lane_lines(original_image):
     img = gaussian_blur(img, 5)
 
     # step 2: find edges with canny
-    edges = canny(img, 50, 150)
+    img = canny(img, 50, 150)
 
     # step 3: now only use the region of the image that we're interested in
     #  -> the region where the lanes are
