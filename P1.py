@@ -3,15 +3,15 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 import cv2
-#matplotlib inline
+#plt.switch_backend('MacOSX')
+#plt.ion()
 
 
 #reading in an image
-image = mpimg.imread('test_images/solidWhiteRight.jpg')
-
-#printing out some stats and plotting
-print('This image is:', type(image), 'with dimensions:', image.shape)
-plt.imshow(image)  # if you wanted to show a single color channel image called 'gray', for example, call as plt.imshow(gray, cmap='gray')
+#image = mpimg.imread('test_images/solidWhiteRight.jpg')
+#print('This image is:', type(image), 'with dimensions:', image.shape)
+#plt.imshow(image)  # if you wanted to show a single color channel image called 'gray', for example, call as plt.imshow(gray, cmap='gray')
+#plt.show()
 
 
 
@@ -113,10 +113,41 @@ def weighted_img(img, initial_img, α=0.8, β=1, λ=0):
 
 
 
+def find_lane_lines(original_image):
+    img = np.copy(original_image)
+
+    # step 1: convert to gray scale and blur
+    img = grayscale(img)
+    img = gaussian_blur(img, 5)
+
+    # step 2: find edges with canny
+    edges = canny(img, 50, 150)
+
+    # step 3: now only use the region of the image that we're interested in
+    #  -> the region where the lanes are
+    height, width = img.shape
+    vertices = np.array([[(width * 0.06, height), (width / 2.15, height / 1.8), (width / 1.85, height / 1.8), (width * 0.94, height)]], dtype=np.int32)
+    img = region_of_interest(img, vertices)
+
+    # step 4: find the hough lines
+    rho = 2              # distance resolution in pixels of the Hough grid
+    theta = np.pi/180    # angular resolution in radians of the Hough grid
+    threshold = 15       # minimum number of votes (intersections in Hough grid cell)
+    min_line_length = 40 # minimum number of pixels making up a line
+    max_line_gap = 20    # maximum gap in pixels between connectable line segments
+    img = hough_lines(img, rho, theta, threshold, min_line_length, max_line_gap)
+
+    # step 5: draw weighted image
+    return weighted_img(img, original_image)
+
 
 
 import os
 
-test_images = os.listdir("test_images/")
-for test_image in test_images:
-    print(test_image)
+for test_image in os.listdir("test_images/"):
+    print('reading ' + test_image)
+    img = mpimg.imread('test_images/' + test_image)
+    img = find_lane_lines(img)
+    plt.imshow(img)
+
+plt.show()
