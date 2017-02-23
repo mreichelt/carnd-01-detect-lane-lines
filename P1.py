@@ -80,9 +80,35 @@ def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
     If you want to make the lines semi-transparent, think about combining
     this function with the weighted_img() function below
     """
+
+    # for line in lines:
+    #     for x1,y1,x2,y2 in line:
+    #         cv2.line(img, (x1, y1), (x2, y2), color, thickness)
+    # return
+
+    width = img.shape[1]
+
+    left_p1 = []
+    left_p2 = []
+    right_p1 = []
+    right_p2 = []
+
     for line in lines:
         for x1,y1,x2,y2 in line:
-            cv2.line(img, (x1, y1), (x2, y2), color, thickness)
+            centerX = (x1 + x2) / 2
+            if (centerX < width / 2):
+                left_p1.append((x1, y1))
+                left_p2.append((x2, y2))
+            else:
+                right_p1.append((x1, y1))
+                right_p2.append((x2, y2))
+
+    if (len(left_p1) > 0 and len(left_p2) > 0):
+        cv2.line(img, min(left_p1), max(left_p2), color, thickness)
+
+    if (len(right_p1) > 0 and len(right_p2) > 0):
+        cv2.line(img, min(right_p1), max(right_p2), color, thickness)
+
 
 def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     """
@@ -92,7 +118,7 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
     """
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
     line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-    draw_lines(line_img, lines)
+    draw_lines(line_img, lines, thickness=5)
     return line_img
 
 # Python 3 has support for cool math symbols.
@@ -136,7 +162,7 @@ def find_lane_lines(original_image):
     theta = np.pi/180    # angular resolution in radians of the Hough grid
     threshold = 15       # minimum number of votes (intersections in Hough grid cell)
     min_line_length = 10 # minimum number of pixels making up a line
-    max_line_gap = 20    # maximum gap in pixels between connectable line segments
+    max_line_gap = 80    # maximum gap in pixels between connectable line segments
     img = hough_lines(img, rho, theta, threshold, min_line_length, max_line_gap)
 
     # step 5: draw weighted image
@@ -154,7 +180,6 @@ for test_image in os.listdir("test_images/"):
     mpimg.imsave("test_images_processed/" + test_image, img)
 
 from moviepy.editor import VideoFileClip
-from IPython.display import HTML
 
 def process_image(image):
     return find_lane_lines(image)
