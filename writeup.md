@@ -73,11 +73,62 @@ region of interest:
 
 Now I could backport the code to Jupyter Notebook and create the videos!
 
-###2. Potential shortcomings of my current pipeline
+####8. Improve `draw_lines()` method
 
-TODO
+Now I could improve the `draw_lines()` method. My first approach was
+to simply split all the lines into two buckets (left/right) and then
+take the average of those lines. This approach proved to be  problematic
+with splitted lane lines.
 
+After some attempts to solve the problem, I found the best way to print
+the final lines was to collect the 2 line points of each line in a bucket
+and get the min and max point for the whole collection. It's much easier
+to understand in code:
 
-###3. Possible improvements for my pipeline
+```python
+left_p1 = []
+left_p2 = []
+right_p1 = []
+right_p2 = []
 
-TODO
+for line in lines:
+    for x1,y1,x2,y2 in line:
+        centerX = (x1 + x2) / 2
+        # group into buckets left/right according to where lines are
+        if (centerX < width / 2):
+            left_p1.append((x1, y1))
+            left_p2.append((x2, y2))
+        else:
+            right_p1.append((x1, y1))
+            right_p2.append((x2, y2))
+
+# print left lane line
+if (len(left_p1) > 0 and len(left_p2) > 0):
+    cv2.line(img, min(left_p1), max(left_p2), color, thickness)
+
+# print right lane line
+if (len(right_p1) > 0 and len(right_p2) > 0):
+    cv2.line(img, min(right_p1), max(right_p2), color, thickness)
+```
+
+Finally, things started to look much better! And the videos look much nicer, too! :-)
+
+![draw lines](test_images_processed/whiteCarLaneSwitch.jpg)
+
+###2. Potential shortcomings & possible improvements of my current pipeline
+
+The current approach still has some shortcomings, some of which I could eliminate:
+
+- Even if I used relative width/height percentages to define my region of interest,
+the region will be hard-coded specifically to scenes where the car navigates straight.
+Also, all the other values will be hard-coded to 
+- My current approach of taking `min(leftPoint)` and `max(rightPoint)` is prone to
+detect lines where no lane lines are. If a line is detected with points smaller or
+larger than the other min/max points, those differences will fully be taken into account.
+Instead, I could calculate the average (x,y) middle point and average slope and draw
+a line over the full height of my region of interest.
+- The algorithm does not really understand what lane lines are. It just detects rapid
+changes in brightness via Canny and assumes them to be lanes. It does not get the concept
+of a horizon, the border of the street, shadows or the border of my own car (as seen
+in extra.mp4). A machine learning algorithm could learn what these things are and
+differentiate between them - and it could really *learn* what lane lines are.
