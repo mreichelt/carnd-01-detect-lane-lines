@@ -128,14 +128,14 @@ def find_lane_lines(original_image):
     # step 3: now only use the region of the image that we're interested in
     #  -> the region where the lanes are
     height, width = img.shape
-    vertices = np.array([[(width * 0.06, height), (width / 2.10, height / 1.6), (width / 1.90, height / 1.6), (width * 0.94, height)]], dtype=np.int32)
+    vertices = np.array([[(width * 0.06, height), (width / 2.10, height / 1.68), (width / 1.90, height / 1.68), (width * 0.94, height)]], dtype=np.int32)
     img = region_of_interest(img, vertices)
 
     # step 4: find the hough lines
     rho = 2              # distance resolution in pixels of the Hough grid
     theta = np.pi/180    # angular resolution in radians of the Hough grid
     threshold = 15       # minimum number of votes (intersections in Hough grid cell)
-    min_line_length = 40 # minimum number of pixels making up a line
+    min_line_length = 10 # minimum number of pixels making up a line
     max_line_gap = 20    # maximum gap in pixels between connectable line segments
     img = hough_lines(img, rho, theta, threshold, min_line_length, max_line_gap)
 
@@ -152,3 +152,24 @@ for test_image in os.listdir("test_images/"):
     img = find_lane_lines(img)
     #plt.imshow(img)
     mpimg.imsave("test_images_processed/" + test_image, img)
+
+from moviepy.editor import VideoFileClip
+from IPython.display import HTML
+
+def process_image(image):
+    return find_lane_lines(image)
+
+white_output = 'white.mp4'
+clip1 = VideoFileClip("solidWhiteRight.mp4")
+white_clip = clip1.fl_image(process_image)
+white_clip.write_videofile(white_output, audio=False)
+
+yellow_output = 'yellow.mp4'
+clip2 = VideoFileClip('solidYellowLeft.mp4')
+yellow_clip = clip2.fl_image(process_image)
+yellow_clip.write_videofile(yellow_output, audio=False)
+
+challenge_output = 'extra.mp4'
+clip2 = VideoFileClip('challenge.mp4')
+challenge_clip = clip2.fl_image(process_image)
+challenge_clip.write_videofile(challenge_output, audio=False)
