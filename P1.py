@@ -1,3 +1,5 @@
+# coding=utf-8
+
 #importing some useful packages
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
